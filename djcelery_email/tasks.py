@@ -15,6 +15,7 @@ def send_emails(messages, backend_kwargs):
         messages = [messages]
 
     conn = get_connection(backend=settings.CELERY_EMAIL_BACKEND, **backend_kwargs)
+    conn.open()
 
     for message in messages:
         try:
@@ -26,6 +27,8 @@ def send_emails(messages, backend_kwargs):
             logger.warning("Failed to send email message to %r, retrying. (%r)",
                            message.to, e)
             send_emails.retry([[message], backend_kwargs], exc=e, throw=False)
+
+    conn.close()
 
 
 # backwards compatibility
